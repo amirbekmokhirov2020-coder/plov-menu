@@ -47,7 +47,7 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(2.8rem,13vw,4.2rem
 .tunes-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .tunes-h{margin:0;font-family:var(--display);color:var(--gold);font-size:1.25rem}
 .tunes-h::before,.tunes-h::after{display:none}
-.tunes-tabs{display:flex;gap:6px}
+.tunes-tabs{display:flex;gap:6px;flex-wrap:wrap}
 .tunes-tabs button{font:800 .85rem var(--body);border-radius:999px;padding:7px 12px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
 .tunes-tabs button[aria-pressed="true"]{background:var(--gold);color:var(--bg)}
 .tunes-tabs button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
@@ -139,6 +139,7 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
       <div class="tunes-tabs" role="group" aria-label="Музика">
         <button type="button" data-yt="sXsuMQKIL-E" aria-pressed="true" data-en="Background">Для настрою</button>
         <button type="button" data-yt="Cg2jk-m4WZk" aria-pressed="false" data-en="Dutar">Дутар</button>
+        <button type="button" data-yt="NVx7JzeljtU" aria-pressed="false" data-en="Classics">Класика</button>
       </div>
     </div>
     <div class="yt"><iframe id="tunesFrame" title="Узбецька інструментальна музика" src="https://www.youtube-nocookie.com/embed/sXsuMQKIL-E?rel=0&amp;playsinline=1&amp;modestbranding=1" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
