@@ -430,9 +430,17 @@
     }));
     var csv = "﻿" + lines.map(function (r) { return r.map(function (v) { v = String(v); return /[;"\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(";"); }).join("\r\n");
     var r = range();
+    var fname = "plov-zvit-" + r[0] + (r[0] !== r[1] ? "_" + r[1] : "") + ".csv";
+    if (window.PLOV_IN_CLAUDE) {
+      window.claude.use("downloads").then(function (dl) {
+        if (!dl) { toast("Завантаження файлів тут недоступне"); return; }
+        return dl.save({ filename: fname, data: new Blob([csv], { type: "text/csv;charset=utf-8" }) });
+      }).catch(function () { toast("Файл не збережено"); });
+      return;
+    }
     var a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    a.download = "plov-zvit-" + r[0] + (r[0] !== r[1] ? "_" + r[1] : "") + ".csv";
+    a.download = fname;
     document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   };
 
@@ -538,7 +546,7 @@
       try { await fs.enablePersistence({ synchronizeTabs: true }); } catch (e) { /* another tab or unsupported: works online */ }
       await firebase.auth().signInAnonymously();
     } catch (e) {
-      showSetup("<b>Не вдалося підключитися до бази.</b> Перевірте інтернет і що в Firebase увімкнено вхід «Anonymous».");
+      showSetup(window.PLOV_IN_CLAUDE ? "<b>Немає з'єднання з базою замовлень.</b> Відкрийте касу в Claude під акаунтом власника і оновіть сторінку." : "<b>Не вдалося підключитися до бази.</b> Перевірте інтернет і що в Firebase увімкнено вхід «Anonymous».");
       setConn(false, "● Помилка підключення"); fs = null; render(); return;
     }
     var seeded = false;
