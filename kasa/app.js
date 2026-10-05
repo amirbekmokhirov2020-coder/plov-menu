@@ -30,7 +30,7 @@
   var fs = null, menu = null, security = null, orders = [], today = dayKey(), unsubOrders = null;
   var cart = {}, pay = "card", where = "here", busy = false;
   var soundOn = store("plov-sound") === "1", autoPrint = store("plov-print") === "1";
-  var knownNew = {}, firstLoad = true;
+  var knownNew = {}, knownReady = {}, firstLoad = true;
   var unlocked = { zvit: false, nalasht: false };
   var LATE_MIN = 15;
 
@@ -294,25 +294,46 @@
   function setAutoPrint(v) { autoPrint = v; store("plov-print", v ? "1" : "0"); var b = $("autoPrint"); b.setAttribute("aria-pressed", v); b.textContent = v ? "🖨 Автодрук: увімк" : "🖨 Автодрук: вимк"; }
   function setSound(v) { soundOn = v; store("plov-sound", v ? "1" : "0"); var b = $("sound"); b.setAttribute("aria-pressed", v); b.textContent = v ? "🔔 Звук: увімк" : "🔕 Звук: вимк"; }
   $("autoPrint").onclick = function () { setAutoPrint(!autoPrint); };
-  $("sound").onclick = function () { setSound(!soundOn); if (soundOn) beep(); };
+  $("sound").onclick = function () { setSound(!soundOn); if (soundOn) tune("new"); };
   setAutoPrint(autoPrint); setSound(soundOn);
 
+  // ---------- sounds: a short Samarkand-style tune (plucked dutar + doira drum) ----------
   var actx = null;
-  function beep() {
+  function ac() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; }
+  function pluck(ctx, freq, t, len, vol) {
+    var out = ctx.createGain(), lp = ctx.createBiquadFilter();
+    lp.type = "lowpass"; lp.frequency.setValueAtTime(freq * 8, t); lp.frequency.exponentialRampToValueAtTime(freq * 1.5, t + len);
+    out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(vol, t + 0.008); out.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    lp.connect(out); out.connect(ctx.destination);
+    [["sawtooth", 0], ["triangle", 4], ["triangle", -5]].forEach(function (v) {
+      var o = ctx.createOscillator(); o.type = v[0]; o.frequency.value = freq; o.detune.value = v[1];
+      o.connect(lp); o.start(t); o.stop(t + len + 0.05);
+    });
+  }
+  function doira(ctx, t, deep) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(deep ? 140 : 260, t); o.frequency.exponentialRampToValueAtTime(deep ? 60 : 180, t + 0.15);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(deep ? 0.5 : 0.18, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.25);
+  }
+  // notes of the Hijaz mode (D, E-flat, F-sharp, G, A, B-flat, C, D)
+  var N = { D4: 293.66, Eb4: 311.13, Fs4: 369.99, G4: 392.0, A4: 440.0, Bb4: 466.16, C5: 523.25, D5: 587.33 };
+  function tune(kind) {
     if (!soundOn) return;
     try {
-      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-      [0, 0.2].forEach(function (t) {
-        var o = actx.createOscillator(), g = actx.createGain();
-        o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
-        g.gain.setValueAtTime(0.0001, actx.currentTime + t);
-        g.gain.exponentialRampToValueAtTime(0.45, actx.currentTime + t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + t + 0.16);
-        o.start(actx.currentTime + t); o.stop(actx.currentTime + t + 0.17);
+      var ctx = ac(), t = ctx.currentTime + 0.05, step = 0.14;
+      var mel = kind === "ready"
+        ? [["A4", 1], ["D5", 1], ["C5", 1], ["Bb4", 1], ["A4", 2], ["D5", 3]]
+        : [["D4", 1], ["Eb4", 1], ["Fs4", 1], ["G4", 1], ["A4", 2], ["G4", 1], ["Fs4", 1], ["D4", 3]];
+      var beats = 0;
+      mel.forEach(function (n) {
+        pluck(ctx, N[n[0]], t + beats * step, Math.max(0.35, n[1] * step * 1.6), 0.22);
+        beats += n[1];
       });
-    } catch (e) { /* no audio */ }
+      for (var b = 0; b <= beats; b += 2) doira(ctx, t + b * step, b % 4 === 0);
+    } catch (e) { /* no audio on this device */ }
   }
-
+  function beep() { tune("new"); }
   // =========================================================
   // СТОП-ЛИСТ (для всіх)
   // =========================================================
@@ -407,7 +428,7 @@
     $("kpis").innerHTML = '<p class="empty">Завантаження…</p>';
     try {
       var snap = await fs.collection("orders").where("day", ">=", r[0]).where("day", "<=", r[1]).get();
-      repOrders = snap.docs.map(function (d) { var o = d.data(); o._id = d.id; return o; });
+      repOrders = snap.docs.map(function (d) { var o = Object.assign({}, d.data()); o._id = d.id; return o; });
     } catch (e) { repOrders = []; toast("Не вдалося завантажити звіт"); }
     renderReport();
   }
@@ -561,11 +582,15 @@
   function setConn(ok, text) { $("conn").textContent = text; $("conn").classList.toggle("bad", !ok); }
   function subscribeOrders() {
     if (unsubOrders) unsubOrders();
-    firstLoad = true; knownNew = {};
+    firstLoad = true; knownNew = {}; knownReady = {};
     unsubOrders = fs.collection("orders").where("day", "==", today).onSnapshot({ includeMetadataChanges: true }, function (snap) {
-      orders = snap.docs.map(function (d) { var o = d.data(); o._id = d.id; return o; });
-      var fresh = [];
-      orders.forEach(function (o) { if (o.status === "new" && !knownNew[o._id]) { if (!firstLoad) fresh.push(o); knownNew[o._id] = 1; } });
+      orders = snap.docs.map(function (d) { var o = Object.assign({}, d.data()); o._id = d.id; return o; });
+      var fresh = [], readyNow = false;
+      orders.forEach(function (o) {
+        if (o.status === "new" && !knownNew[o._id]) { if (!firstLoad) fresh.push(o); knownNew[o._id] = 1; }
+        if (o.status === "ready" && !knownReady[o._id]) { if (!firstLoad) readyNow = true; knownReady[o._id] = 1; }
+      });
+      if (readyNow && (tab === "vydacha" || tab === "tablo")) tune("ready");
       firstLoad = false;
       if (fresh.length && tab === "kuhnya") { beep(); if (autoPrint) printOrder(fresh[0]); }
       setConn(!snap.metadata.fromCache, snap.metadata.fromCache ? "● Офлайн — замовлення збережуться" : "● Онлайн");
