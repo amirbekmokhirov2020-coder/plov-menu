@@ -51,7 +51,8 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(2.8rem,13vw,4.2rem
 .tunes-tabs button{font:800 .85rem var(--body);border-radius:999px;padding:7px 12px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
 .tunes-tabs button[aria-pressed="true"]{background:var(--gold);color:var(--bg)}
 .tunes-tabs button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.tunes iframe{width:100%;border:0;border-radius:12px;display:block;background:var(--bg)}
+.yt{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;border-radius:12px;overflow:hidden;background:var(--bg)}
+.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
 .tunes-note{margin:0;text-align:center;color:var(--muted);font-size:.82rem}
 .sub{color:var(--turq);margin:0;font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;font-weight:800}
 section{display:flex;flex-direction:column;gap:12px}
@@ -135,13 +136,13 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
   <section class="tunes" aria-label="Музика">
     <div class="tunes-head">
       <h2 class="tunes-h" data-en="🎵 Our music">🎵 Наша музика</h2>
-      <div class="tunes-tabs" role="group" aria-label="Плейлист">
-        <button type="button" data-pl="6Sc5N0dQTWbn11CgpgK2wW" aria-pressed="true" data-en="Classics">Класика</button>
-        <button type="button" data-pl="6KSNtZBLadn0RDToIg8i9j" aria-pressed="false" data-en="Modern hits">Молодіжне</button>
+      <div class="tunes-tabs" role="group" aria-label="Музика">
+        <button type="button" data-yt="sXsuMQKIL-E" aria-pressed="true" data-en="Background">Для настрою</button>
+        <button type="button" data-yt="Cg2jk-m4WZk" aria-pressed="false" data-en="Dutar">Дутар</button>
       </div>
     </div>
-    <iframe id="tunesFrame" title="Плейлист узбецької музики" src="https://open.spotify.com/embed/playlist/6Sc5N0dQTWbn11CgpgK2wW?utm_source=generator&amp;theme=0" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-    <p class="tunes-note" data-en="Press ▶ and enjoy your meal with Uzbek songs">Натисніть ▶ і смакуйте під узбецькі пісні</p>
+    <div class="yt"><iframe id="tunesFrame" title="Узбецька інструментальна музика" src="https://www.youtube-nocookie.com/embed/sXsuMQKIL-E?rel=0&amp;playsinline=1&amp;modestbranding=1" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <p class="tunes-note" data-en="Instrumental Uzbek music, no vocals. Press ▶">Узбецька музика без слів. Натисніть ▶</p>
   </section>
 
 
@@ -390,7 +391,7 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
 </script>
 
 <script>
-(function(){var f=document.getElementById("tunesFrame");document.querySelectorAll(".tunes-tabs button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tunes-tabs button").forEach(function(x){x.setAttribute("aria-pressed",x===b)});f.src="https://open.spotify.com/embed/playlist/"+b.dataset.pl+"?utm_source=generator&theme=0";});});})();
+(function(){var f=document.getElementById("tunesFrame");document.querySelectorAll(".tunes-tabs button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tunes-tabs button").forEach(function(x){x.setAttribute("aria-pressed",x===b)});f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.yt+"?rel=0&playsinline=1&modestbranding=1&autoplay=1";});});})();
 </script>
 </body>
 </html>
