@@ -6,7 +6,7 @@
   function start() {
     if (started) return; started = true;
     ["pointerdown", "touchend", "keydown"].forEach(function (n) { window.removeEventListener(n, start, true); });
-    audio = new Audio("music.mp3"); audio.loop = true; audio.setAttribute("playsinline", "");
+    audio = new Audio("music.mp3?v=" + Date.now()); audio.loop = true; audio.setAttribute("playsinline", "");
     audio.volume = 0.4;
     audio.play().then(function () {
       // gentle fade-in where the browser allows it (Android, computers); iPhone plays at the file's own quiet level
