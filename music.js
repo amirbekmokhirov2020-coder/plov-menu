@@ -7,10 +7,10 @@
     if (started) return; started = true;
     ["pointerdown", "touchend", "keydown"].forEach(function (n) { window.removeEventListener(n, start, true); });
     audio = new Audio("music.mp3"); audio.loop = true; audio.setAttribute("playsinline", "");
-    audio.volume = 0.05;
+    audio.volume = 0.4;
     audio.play().then(function () {
       // gentle fade-in where the browser allows it (Android, computers); iPhone plays at the file's own quiet level
-      var v = 0.05, t = setInterval(function () { v = Math.min(1, v + 0.04); audio.volume = v; if (v >= 1) clearInterval(t); }, 400);
+      var v = 0.4, t = setInterval(function () { v = Math.min(1, v + 0.1); audio.volume = v; if (v >= 1) clearInterval(t); }, 400);
     }).catch(function () { started = false; listen(); });
     document.addEventListener("visibilitychange", function () { if (document.hidden) audio.pause(); else audio.play().catch(function () {}); });
   }
