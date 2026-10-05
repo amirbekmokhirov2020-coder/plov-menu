@@ -1,25 +1,18 @@
-/* Тиха фонова музика (дутар). Починає грати після першого дотику до меню і плавно стає ледь чутною.
-   Гучність задана в самому файлі (дуже тихо) і через Web Audio, бо iPhone не дозволяє змінювати гучність інакше. */
+/* Тиха фонова музика (дутар). Починає грати після першого дотику до меню.
+   Гучність задана в самому файлі, бо iPhone не дозволяє сайтам змінювати гучність. */
 (function () {
   "use strict";
-  var SRC = "music.mp3", LEVEL = 0.8, FADE_S = 10;
-  var started = false;
+  var started = false, audio = null;
   function start() {
     if (started) return; started = true;
     ["pointerdown", "touchend", "keydown"].forEach(function (n) { window.removeEventListener(n, start, true); });
-    var audio = new Audio(SRC); audio.loop = true; audio.preload = "auto"; audio.setAttribute("playsinline", "");
-    var Ctx = window.AudioContext || window.webkitAudioContext, ctx = null, gain = null;
-    try {
-      ctx = new Ctx(); gain = ctx.createGain(); gain.gain.value = 0.0001;
-      ctx.createMediaElementSource(audio).connect(gain); gain.connect(ctx.destination);
-      if (ctx.state === "suspended") ctx.resume();
-    } catch (e) { ctx = null; audio.volume = 0.25; }
+    audio = new Audio("music.mp3"); audio.loop = true; audio.setAttribute("playsinline", "");
+    audio.volume = 0.05;
     audio.play().then(function () {
-      if (ctx) { var t = ctx.currentTime; gain.gain.setValueAtTime(0.0001, t); gain.gain.exponentialRampToValueAtTime(LEVEL, t + FADE_S); }
+      // gentle fade-in where the browser allows it (Android, computers); iPhone plays at the file's own quiet level
+      var v = 0.05, t = setInterval(function () { v = Math.min(1, v + 0.04); audio.volume = v; if (v >= 1) clearInterval(t); }, 400);
     }).catch(function () { started = false; listen(); });
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) audio.pause(); else audio.play().catch(function () {});
-    });
+    document.addEventListener("visibilitychange", function () { if (document.hidden) audio.pause(); else audio.play().catch(function () {}); });
   }
   function listen() { ["pointerdown", "touchend", "keydown"].forEach(function (n) { window.addEventListener(n, start, true); }); }
   listen();
