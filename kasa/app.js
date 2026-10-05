@@ -57,7 +57,14 @@
   function byId(id) { return items().find(function (i) { return i.id === id; }); }
   function active() { return orders.filter(function (o) { return o.status !== "cancelled"; }); }
   function localNext() { var m = 0; orders.forEach(function (o) { if (o.num > m) m = o.num; }); return m + 1; }
-  function qtyLabel(l) { return l.per100 ? (l.qty * 100) + " г" : l.qty + "×"; }
+  // weighed dishes (price per 100 g): cart key is "id@grams", e.g. "shashlik@350"
+  function gramsOf(l) { return l.grams || (l.per100 ? 100 : 0); }
+  function qtyLabel(l) {
+    if (l.per100) { var g = gramsOf(l); return (l.grams ? (l.qty > 1 ? l.qty + "×" : "") + g : l.qty * 100) + " г"; }
+    return l.qty + "×";
+  }
+  function keyInfo(key) { var p = key.split("@"); var it = byId(p[0]); return it ? { it: it, grams: p[1] ? Number(p[1]) : 0 } : null; }
+  function unitPrice(it, grams) { return it.per100 ? Math.round(it.price * grams / 100) : it.price; }
   function ageMin(o) { return Math.floor((Date.now() - o.createdAt) / 60000); }
   function hasKitchen(o) { return o.items.some(function (l) { return l.kitchen; }); }
 
@@ -71,9 +78,10 @@
       var list = items().filter(function (i) { return i.cat === c; });
       if (!list.length) return "";
       return '<div class="cat"><h3 class="sec">' + esc(c) + '</h3><div class="grid">' + list.map(function (i) {
-        var q = cart[i.id] || 0, off = i.available === false;
+        var q = 0, off = i.available === false;
+        Object.keys(cart).forEach(function (k) { var ki = keyInfo(k); if (ki && ki.it.id === i.id) q += i.per100 ? ki.grams * cart[k] : cart[k]; });
         return '<button type="button" class="item' + (off ? " off" : "") + '" data-add="' + esc(i.id) + '">' +
-          (q ? '<span class="q">' + (i.per100 ? q * 100 + " г" : "×" + q) + "</span>" : "") +
+          (q ? '<span class="q">' + (i.per100 ? q + " г" : "×" + q) + "</span>" : "") +
           '<span class="nm">' + esc(i.name) + "</span>" +
           '<span class="pr">' + money(i.price) + (i.per100 ? " /100 г" : "") + "</span></button>";
       }).join("") + "</div></div>";
@@ -83,17 +91,47 @@
     var b = e.target.closest("[data-add]"); if (!b) return;
     var it = byId(b.dataset.add); if (!it) return;
     if (it.available === false) { toast(it.name + " — у стоп-листі"); return; }
-    cart[it.id] = (cart[it.id] || 0) + 1; $("sent").hidden = true; render();
+    $("sent").hidden = true;
+    if (it.per100) { openWeight(it); return; }
+    cart[it.id] = (cart[it.id] || 0) + 1; render();
   });
-  function cartIds() { return Object.keys(cart).filter(function (id) { return cart[id] > 0 && byId(id); }); }
-  function cartTotal() { return cartIds().reduce(function (s, id) { return s + byId(id).price * cart[id]; }, 0); }
+
+  // weight entry for dishes sold by weight
+  var weighing = null;
+  function openWeight(it) {
+    weighing = it;
+    $("wName").textContent = it.name + " · " + money(it.price) + " за 100 г";
+    $("wGrams").value = "";
+    $("wQuick").innerHTML = [200, 250, 300, 350, 400, 500].map(function (g) { return '<button type="button" data-g="' + g + '">' + g + " г</button>"; }).join("");
+    $("weightBox").hidden = false; updateWeight();
+    setTimeout(function () { $("wGrams").focus(); }, 30);
+  }
+  function updateWeight() {
+    var g = Math.round(Number($("wGrams").value) || 0);
+    $("wPrice").textContent = g > 0 && weighing ? money(unitPrice(weighing, g)) : "—";
+    $("wAdd").disabled = !(g >= 10 && g <= 5000);
+  }
+  function addWeighed() {
+    var g = Math.round(Number($("wGrams").value) || 0);
+    if (!weighing || !(g >= 10 && g <= 5000)) return;
+    var key = weighing.id + "@" + g;
+    cart[key] = (cart[key] || 0) + 1;
+    weighing = null; $("weightBox").hidden = true; render();
+  }
+  $("wGrams").addEventListener("input", updateWeight);
+  $("wGrams").addEventListener("keydown", function (e) { if (e.key === "Enter") addWeighed(); });
+  $("wQuick").addEventListener("click", function (e) { var b = e.target.closest("[data-g]"); if (b) { $("wGrams").value = b.dataset.g; updateWeight(); } });
+  $("wAdd").onclick = addWeighed;
+  $("wCancel").onclick = function () { weighing = null; $("weightBox").hidden = true; };
+  function cartIds() { return Object.keys(cart).filter(function (k) { return cart[k] > 0 && keyInfo(k); }); }
+  function cartTotal() { return cartIds().reduce(function (s, k) { var ki = keyInfo(k); return s + unitPrice(ki.it, ki.grams) * cart[k]; }, 0); }
   function renderCart() {
     var ids = cartIds();
     $("lines").innerHTML = ids.length ? ids.map(function (id) {
-      var it = byId(id), q = cart[id];
-      return '<div class="line"><span class="nm">' + esc(it.name) + (it.per100 ? "<small>" + q * 100 + " г</small>" : "") + "</span>" +
+      var ki = keyInfo(id), it = ki.it, q = cart[id];
+      return '<div class="line"><span class="nm">' + esc(it.name) + (it.per100 ? "<small>" + ki.grams + " г" + (q > 1 ? " × " + q : "") + "</small>" : "") + "</span>" +
         '<span class="step"><button type="button" data-dec="' + esc(id) + '" aria-label="Менше">−</button><span>' + q + '</span><button type="button" data-inc="' + esc(id) + '" aria-label="Більше">+</button></span>' +
-        '<span class="sum">' + money(it.price * q) + "</span></div>";
+        '<span class="sum">' + money(unitPrice(it, ki.grams) * q) + "</span></div>";
     }).join("") : '<p class="empty">Натисніть на страви</p>';
     var total = cartTotal();
     $("total").textContent = money(total);
@@ -129,14 +167,18 @@
   $("payCash").onclick = function () { setPay("cash"); };
   $("tHere").onclick = function () { setWhere("here"); };
   $("tAway").onclick = function () { setWhere("away"); };
-  function resetCart() { cart = {}; $("note").value = ""; $("table").value = ""; $("given").value = ""; setWhere("here"); pay = "card"; setPay("card"); }
+  function resetCart() { cart = {}; weighing = null; $("weightBox").hidden = true; $("note").value = ""; $("table").value = ""; $("given").value = ""; setWhere("here"); pay = "card"; setPay("card"); }
   $("clear").onclick = function () { resetCart(); $("sent").hidden = true; };
 
   $("send").onclick = async function () {
     if (!fs || busy) return;
     var ids = cartIds(); if (!ids.length) return;
     busy = true; render();
-    var lines = ids.map(function (id) { var it = byId(id); return { id: id, name: it.name, qty: cart[id], price: it.price, per100: !!it.per100, kitchen: it.kitchen !== false }; });
+    var lines = ids.map(function (k) {
+      var ki = keyInfo(k), it = ki.it, l = { id: it.id, name: it.name, qty: cart[k], price: unitPrice(it, ki.grams), per100: !!it.per100, kitchen: it.kitchen !== false };
+      if (it.per100) l.grams = ki.grams;
+      return l;
+    });
     var total = cartTotal();
     var base = {
       day: today, items: lines, total: total, pay: pay, where: where,
@@ -378,7 +420,7 @@
       if (o.where === "away") away++;
       var h = new Date(o.createdAt).getHours(); hrs[h] = (hrs[h] || 0) + o.total;
       if (o.readyAt && hasKitchen(o)) prep.push((o.readyAt - o.createdAt) / 60000);
-      o.items.forEach(function (l) { var k = l.name; per[k] = per[k] || { q: 0, s: 0, per100: l.per100 }; per[k].q += l.qty; per[k].s += l.qty * l.price; });
+      o.items.forEach(function (l) { var k = l.name; per[k] = per[k] || { q: 0, s: 0, per100: l.per100 }; per[k].q += l.per100 ? l.qty * gramsOf(l) : l.qty; per[k].s += l.qty * l.price; });
     });
     var avgPrep = prep.length ? Math.round(prep.reduce(function (a, b) { return a + b; }, 0) / prep.length) : null;
     var days = {}; ok.forEach(function (o) { days[o.day] = 1; });
@@ -392,7 +434,7 @@
     var rows = Object.keys(per).map(function (n) { return [n, per[n]]; }).sort(function (a, b) { return b[1].s - a[1].s; });
     var max = rows.length ? rows[0][1].s : 1;
     $("repRows").innerHTML = rows.length ? rows.map(function (r) {
-      return "<tr><td>" + esc(r[0]) + '</td><td class="r">' + (r[1].per100 ? r[1].q * 100 + " г" : r[1].q) + '</td><td class="r">' + money(r[1].s) + '</td><td><div class="bar" style="width:' + Math.max(4, r[1].s / max * 100) + '%"></div></td></tr>';
+      return "<tr><td>" + esc(r[0]) + '</td><td class="r">' + (r[1].per100 ? r[1].q + " г" : r[1].q) + '</td><td class="r">' + money(r[1].s) + '</td><td><div class="bar" style="width:' + Math.max(4, r[1].s / max * 100) + '%"></div></td></tr>';
     }).join("") : '<tr><td colspan="4" class="empty">Продажів за цей період немає</td></tr>';
 
     var hs = Object.keys(hrs).map(Number), from = hs.length ? Math.min.apply(null, hs.concat([10])) : 10, to = hs.length ? Math.max.apply(null, hs.concat([18])) : 18;

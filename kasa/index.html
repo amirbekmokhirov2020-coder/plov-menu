@@ -93,6 +93,9 @@ input[type=text],input[type=number],input[type=password],input[type=date],select
 .change .res{display:flex;justify-content:space-between;font-weight:800;font-size:1.15rem}
 .change .res b{color:var(--ready);font-variant-numeric:tabular-nums}
 .change .res.short b{color:var(--late)}
+.weigh{background:var(--bg);border:1.5px solid var(--gold);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.weigh .res{display:flex;justify-content:space-between;font-weight:800;font-size:1.15rem}
+.weigh .res b{color:var(--gold);font-variant-numeric:tabular-nums}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sent{background:var(--ready);color:#06210f;border-radius:12px;padding:12px;text-align:center;font-weight:800}
 .sent b{font-family:var(--display);font-size:2.2rem;display:block}
@@ -236,6 +239,13 @@ td.r,th.r{text-align:right}
       <div class="cats" id="menuGrid"><p class="empty">Меню завантажується…</p></div>
       <aside class="cart" aria-label="Замовлення">
         <div class="cart-head"><h2>Замовлення</h2><span class="next" id="nextNum">№ —</span></div>
+        <div class="weigh" id="weightBox" hidden>
+          <b id="wName"></b>
+          <div class="field"><label for="wGrams">Вага, грамів</label><input type="number" id="wGrams" inputmode="numeric" min="10" max="5000" step="10" placeholder="напр. 350"></div>
+          <div class="quick" id="wQuick"></div>
+          <div class="res"><span>Ціна</span><b id="wPrice">—</b></div>
+          <div class="row2"><button type="button" class="btn ghost" id="wCancel">Скасувати</button><button type="button" class="btn gold" id="wAdd" disabled>Додати</button></div>
+        </div>
         <div class="lines" id="lines"></div>
         <div class="seg" role="group" aria-label="Де їсть гість">
           <button type="button" id="tHere" aria-pressed="true">Тут</button>
