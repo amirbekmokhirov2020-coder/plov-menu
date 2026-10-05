@@ -147,21 +147,33 @@
     if (base.status === "ready") base.readyAt = Date.now();
     if (pay === "cash" && Number($("given").value) >= total) base.given = Number($("given").value);
     var num;
+    function saveOffline() {
+      num = localNext();
+      return fs.collection("orders").doc(today + "_" + num + "_" + Math.random().toString(36).slice(2, 6)).set(Object.assign({ num: num, offline: true }, base));
+    }
     try {
-      num = await fs.runTransaction(async function (t) {
-        var cRef = fs.collection("counters").doc(today);
-        var snap = await t.get(cRef);
-        var n = (snap.exists ? snap.data().last : 0) + 1;
-        t.set(cRef, { last: n });
-        t.set(fs.collection("orders").doc(today + "_" + n), Object.assign({ num: n }, base));
-        return n;
-      });
+      if (navigator.onLine === false) {
+        // no internet: Firestore keeps the write and sends it when the connection is back
+        saveOffline();
+      } else {
+        var tx = fs.runTransaction(async function (t) {
+          var cRef = fs.collection("counters").doc(today);
+          var snap = await t.get(cRef);
+          var n = Math.max((snap.exists ? snap.data().last : 0) + 1, localNext());
+          t.set(cRef, { last: n });
+          t.set(fs.collection("orders").doc(today + "_" + n), Object.assign({ num: n }, base));
+          return n;
+        });
+        var timedOut = false;
+        num = await Promise.race([tx, new Promise(function (_, rej) { setTimeout(function () { timedOut = true; rej(new Error("timeout")); }, 12000); })]);
+      }
     } catch (err) {
-      // offline: transactions need the server. Save with a local number so the order is not lost.
-      try {
-        num = localNext();
-        await fs.collection("orders").doc(today + "_" + num + "_" + Math.random().toString(36).slice(2, 6)).set(Object.assign({ num: num, offline: true }, base));
-      } catch (e2) { busy = false; render(); toast("Не вдалося зберегти замовлення. Перевірте інтернет."); return; }
+      if (timedOut) {
+        busy = false; render();
+        toast("Інтернет повільний. Перевірте «Кухню»: якщо замовлення там є, не пробивайте його вдруге.");
+        return;
+      }
+      try { saveOffline(); } catch (e2) { busy = false; render(); toast("Не вдалося зберегти замовлення. Спробуйте ще раз."); return; }
     }
     resetCart();
     var s = $("sent"); s.innerHTML = "Відправлено на кухню<b>№ " + num + "</b>Скажіть гостю номер"; s.hidden = false;
@@ -532,7 +544,7 @@
     var seeded = false;
     fs.collection("settings").doc("menu").onSnapshot(function (s) {
       menu = s.exists ? s.data() : null;
-      if (!s.exists && !seeded && !s.metadata.fromCache && window.PLOV_DEFAULT_MENU) { seeded = true; fs.collection("settings").doc("menu").set(window.PLOV_DEFAULT_MENU).catch(function () {}); }
+      if (!s.exists && !seeded && !(s.metadata && s.metadata.fromCache) && window.PLOV_DEFAULT_MENU) { seeded = true; fs.collection("settings").doc("menu").set(window.PLOV_DEFAULT_MENU).catch(function () {}); }
       render();
     }, function () {
       showSetup("<b>База не дає доступу.</b> У Firebase → Firestore → Rules потрібно вставити правила з інструкції.");
