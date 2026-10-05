@@ -43,16 +43,16 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(2.8rem,13vw,4.2rem
 .review .phone{color:var(--fg)}
 .tel{color:var(--gold);user-select:all}
 @media (max-width:380px){.actions{grid-template-columns:1fr}}
-.music{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:8px;font:800 .85rem var(--body);color:var(--bg);background:var(--gold);border:0;border-radius:999px;padding:10px 14px;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer}
-.music[aria-pressed="false"]{background:var(--card);color:var(--gold);border:1.5px solid var(--gold)}
-.music:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.eq{display:flex;align-items:flex-end;gap:2px;height:14px}
-.eq i{width:3px;height:4px;background:currentColor;border-radius:1px}
-.music[aria-pressed="true"] .eq i{animation:eq 1s ease-in-out infinite}
-.music[aria-pressed="true"] .eq i:nth-child(2){animation-delay:.2s}
-.music[aria-pressed="true"] .eq i:nth-child(3){animation-delay:.4s}
-@keyframes eq{0%,100%{height:4px}50%{height:14px}}
-@media (prefers-reduced-motion:reduce){.music .eq i{animation:none!important}}
+.tunes{background:var(--card);border:1.5px solid var(--gold);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.tunes-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tunes-h{margin:0;font-family:var(--display);color:var(--gold);font-size:1.25rem}
+.tunes-h::before,.tunes-h::after{display:none}
+.tunes-tabs{display:flex;gap:6px}
+.tunes-tabs button{font:800 .85rem var(--body);border-radius:999px;padding:7px 12px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
+.tunes-tabs button[aria-pressed="true"]{background:var(--gold);color:var(--bg)}
+.tunes-tabs button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.tunes iframe{width:100%;border:0;border-radius:12px;display:block;background:var(--bg)}
+.tunes-note{margin:0;text-align:center;color:var(--muted);font-size:.82rem}
 .sub{color:var(--turq);margin:0;font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;font-weight:800}
 section{display:flex;flex-direction:column;gap:12px}
 h2{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;display:flex;align-items:center;gap:12px;color:var(--gold)}
@@ -110,7 +110,6 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
   </defs>
 </svg>
 
-<button type="button" class="music" id="music" aria-pressed="false" aria-label="Музика" hidden><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="mlabel" data-en="Music">Музика</span></button>
 <div class="wrap">
   <div class="lang" role="group" aria-label="Language">
     <button type="button" id="lang-uk" aria-pressed="true">UA</button><button type="button" id="lang-en" aria-pressed="false">EN</button>
@@ -132,6 +131,18 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
       <a class="act" href="https://maps.app.goo.gl/5v3ceXCBFBuYbUJU7" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg><span><small data-en="Find us">Як нас знайти</small><b data-en="Google Maps">Google Карти</b></span></a>
     </div>
   </header>
+
+  <section class="tunes" aria-label="Музика">
+    <div class="tunes-head">
+      <h2 class="tunes-h" data-en="🎵 Our music">🎵 Наша музика</h2>
+      <div class="tunes-tabs" role="group" aria-label="Плейлист">
+        <button type="button" data-pl="6Sc5N0dQTWbn11CgpgK2wW" aria-pressed="true" data-en="Classics">Класика</button>
+        <button type="button" data-pl="6KSNtZBLadn0RDToIg8i9j" aria-pressed="false" data-en="Modern hits">Молодіжне</button>
+      </div>
+    </div>
+    <iframe id="tunesFrame" title="Плейлист узбецької музики" src="https://open.spotify.com/embed/playlist/6Sc5N0dQTWbn11CgpgK2wW?utm_source=generator&amp;theme=0" height="152" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+    <p class="tunes-note" data-en="Press ▶ and enjoy your meal with Uzbek songs">Натисніть ▶ і смакуйте під узбецькі пісні</p>
+  </section>
 
 
   <section>
@@ -378,6 +389,8 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
 })();
 </script>
 
-<script src="music.js"></script>
+<script>
+(function(){var f=document.getElementById("tunesFrame");document.querySelectorAll(".tunes-tabs button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tunes-tabs button").forEach(function(x){x.setAttribute("aria-pressed",x===b)});f.src="https://open.spotify.com/embed/playlist/"+b.dataset.pl+"?utm_source=generator&theme=0";});});})();
+</script>
 </body>
 </html>
