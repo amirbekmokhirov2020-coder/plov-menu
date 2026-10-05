@@ -2,7 +2,7 @@
    Браузери не дозволяють музику без дотику, тому чекаємо перший дотик або клік. */
 (function () {
   "use strict";
-  var SRC = "music.mp3", TARGET = 0.32, FADE_MS = 9000;
+  var SRC = "music.mp3", TARGET = 0.16, FADE_MS = 10000;
   var btn = document.getElementById("music"); if (!btn) return;
   var audio = null, started = false, fadeT = null;
   var off = false; try { off = localStorage.getItem("plov-music") === "off"; } catch (e) {}
