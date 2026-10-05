@@ -529,7 +529,12 @@
       showSetup("<b>Не вдалося підключитися до бази.</b> Перевірте інтернет і що в Firebase увімкнено вхід «Anonymous».");
       setConn(false, "● Помилка підключення"); fs = null; render(); return;
     }
-    fs.collection("settings").doc("menu").onSnapshot(function (s) { menu = s.exists ? s.data() : null; render(); }, function () {
+    var seeded = false;
+    fs.collection("settings").doc("menu").onSnapshot(function (s) {
+      menu = s.exists ? s.data() : null;
+      if (!s.exists && !seeded && !s.metadata.fromCache && window.PLOV_DEFAULT_MENU) { seeded = true; fs.collection("settings").doc("menu").set(window.PLOV_DEFAULT_MENU).catch(function () {}); }
+      render();
+    }, function () {
       showSetup("<b>База не дає доступу.</b> У Firebase → Firestore → Rules потрібно вставити правила з інструкції.");
     });
     fs.collection("settings").doc("security").onSnapshot(function (s) { security = s.exists ? s.data() : null; if (tab === "zvit" || tab === "nalasht") render(); }, function () {});
