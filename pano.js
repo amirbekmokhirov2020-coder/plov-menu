@@ -333,6 +333,7 @@
 
   window.PlovPano = { paint: paintPanorama, start: start };
   function boot() {
+    var real = document.getElementById("pano360btns"); if (real) music(real);
     var box = document.getElementById("pano"); if (!box) return;
     music(box);
     var go = function () { try { start(box); } catch (e) { box.classList.add("no-gl"); } };

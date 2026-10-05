@@ -44,6 +44,11 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(2.8rem,13vw,4.2rem
 .tel{color:var(--gold);user-select:all}
 @media (max-width:380px){.actions{grid-template-columns:1fr}}
 .pano{position:relative;height:clamp(260px,72vw,480px);border-radius:22px;overflow:hidden;border:2px solid var(--gold);background:linear-gradient(#27407a,#f2b36a 55%,#a9845e 56%,#5a4636);touch-action:pan-y;padding:0}
+.real360 iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.pano-btns.below{position:static;margin-top:-18px}
+.real360 .pano-top{pointer-events:none}
+.real360 .pano-top{top:12px;left:12px}
+.credit{margin:-22px 0 0;text-align:center;font-size:.78rem;color:var(--muted)}.credit a{color:var(--turq)}
 .pano-gl{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
 .pano-gl:active{cursor:grabbing}
 .pano-top{position:absolute;top:12px;left:12px;display:flex;gap:8px;align-items:center;background:rgba(13,31,60,.72);border-radius:999px;padding:5px 12px 5px 5px;font-weight:800;font-size:.9rem;pointer-events:none}
@@ -136,19 +141,18 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
     </div>
   </header>
 
-  <section class="pano" id="pano" aria-label="Самарканд 360°">
-    <canvas class="pano-gl" aria-hidden="true"></canvas>
+  <section class="pano real360" id="pano360" aria-label="Самарканд 360°">
+    <iframe src="https://uzbekistan360.uz/ru/location/neJ0V" title="Самарканд 360° — Uzbekistan360" loading="lazy" allow="fullscreen; gyroscope; accelerometer; magnetometer; xr-spatial-tracking" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
     <div class="pano-top">
       <span class="pano-badge">360°</span>
-      <span data-en="Registan, Samarkand">Регістан, Самарканд</span>
-    </div>
-    <p class="pano-hint" data-en="Turn your phone or swipe to look around">Поверніть телефон або проведіть пальцем</p>
-    <div class="pano-btns">
-      <a class="pano-btn real" href="https://uzbekistan360.uz/ru/location/neJ0V" target="_blank" rel="noopener" data-en="Real Samarkand 360° →">Справжній Самарканд 360° →</a>
-      <button type="button" class="pano-btn" data-tilt data-en="📱 Turn on 360°">📱 Увімкнути 360°</button>
-      <button type="button" class="pano-btn" data-music="music.mp3" aria-pressed="false" hidden data-en="🎵 Music">🎵 Музика</button>
+      <span data-en="Samarkand">Самарканд</span>
     </div>
   </section>
+  <div class="pano-btns below" id="pano360btns">
+    <a class="pano-btn real" href="https://uzbekistan360.uz/ru/location/neJ0V" target="_blank" rel="noopener" data-en="Open full screen ↗">Відкрити на весь екран ↗</a>
+    <button type="button" class="pano-btn" data-music="music.mp3" aria-pressed="false" hidden data-en="🎵 Music">🎵 Музика</button>
+  </div>
+  <p class="credit"><span data-en="Panorama courtesy of">Панорама надана</span> <a href="https://uzbekistan360.uz" target="_blank" rel="noopener">Uzbekistan360.uz</a></p>
 
   <section>
     <h2 data-en="Soups">Перші страви</h2>
