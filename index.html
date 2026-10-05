@@ -43,17 +43,15 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(2.8rem,13vw,4.2rem
 .review .phone{color:var(--fg)}
 .tel{color:var(--gold);user-select:all}
 @media (max-width:380px){.actions{grid-template-columns:1fr}}
-.tunes{background:var(--card);border:1.5px solid var(--gold);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.tunes-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.tunes-h{margin:0;font-family:var(--display);color:var(--gold);font-size:1.25rem}
-.tunes-h::before,.tunes-h::after{display:none}
-.tunes-tabs{display:flex;gap:6px;flex-wrap:wrap}
-.tunes-tabs button{font:800 .85rem var(--body);border-radius:999px;padding:7px 12px;border:1.5px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
-.tunes-tabs button[aria-pressed="true"]{background:var(--gold);color:var(--bg)}
-.tunes-tabs button:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.yt{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;border-radius:12px;overflow:hidden;background:var(--bg)}
-.yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.tunes-note{margin:0;text-align:center;color:var(--muted);font-size:.82rem}
+.music{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:8px;font:800 .85rem var(--body);color:var(--bg);background:var(--gold);border:0;border-radius:999px;padding:10px 14px;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer}
+.music[aria-pressed="false"]{background:var(--card);color:var(--gold);border:1.5px solid var(--gold)}
+.music:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.eq{display:flex;align-items:flex-end;gap:2px;height:14px}
+.eq i{width:3px;height:4px;background:currentColor;border-radius:1px}
+.music[aria-pressed="true"] .eq i{animation:eq 1s ease-in-out infinite}
+.music[aria-pressed="true"] .eq i:nth-child(2){animation-delay:.2s}
+.music[aria-pressed="true"] .eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:4px}50%{height:14px}}
 .sub{color:var(--turq);margin:0;font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;font-weight:800}
 section{display:flex;flex-direction:column;gap:12px}
 h2{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;display:flex;align-items:center;gap:12px;color:var(--gold)}
@@ -111,6 +109,7 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
   </defs>
 </svg>
 
+<button type="button" class="music" id="music" aria-pressed="false" aria-label="Музика" hidden><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="mlabel" data-en="Music">Музика</span></button>
 <div class="wrap">
   <div class="lang" role="group" aria-label="Language">
     <button type="button" id="lang-uk" aria-pressed="true">UA</button><button type="button" id="lang-en" aria-pressed="false">EN</button>
@@ -133,18 +132,6 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
     </div>
   </header>
 
-  <section class="tunes" aria-label="Музика">
-    <div class="tunes-head">
-      <h2 class="tunes-h" data-en="🎵 Our music">🎵 Наша музика</h2>
-      <div class="tunes-tabs" role="group" aria-label="Музика">
-        <button type="button" data-yt="sXsuMQKIL-E" aria-pressed="true" data-en="Background">Для настрою</button>
-        <button type="button" data-yt="Cg2jk-m4WZk" aria-pressed="false" data-en="Dutar">Дутар</button>
-        <button type="button" data-yt="NVx7JzeljtU" aria-pressed="false" data-en="Classics">Класика</button>
-      </div>
-    </div>
-    <div class="yt"><iframe id="tunesFrame" title="Узбецька інструментальна музика" src="https://www.youtube-nocookie.com/embed/sXsuMQKIL-E?rel=0&amp;playsinline=1&amp;modestbranding=1" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-    <p class="tunes-note" data-en="Instrumental Uzbek music, no vocals. Press ▶">Узбецька музика без слів. Натисніть ▶</p>
-  </section>
 
 
   <section>
@@ -391,8 +378,6 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
 })();
 </script>
 
-<script>
-(function(){var f=document.getElementById("tunesFrame");document.querySelectorAll(".tunes-tabs button").forEach(function(b){b.addEventListener("click",function(){document.querySelectorAll(".tunes-tabs button").forEach(function(x){x.setAttribute("aria-pressed",x===b)});f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.yt+"?rel=0&playsinline=1&modestbranding=1&autoplay=1";});});})();
-</script>
+<script src="music.js"></script>
 </body>
 </html>
