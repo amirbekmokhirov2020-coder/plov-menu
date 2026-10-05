@@ -43,25 +43,16 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(2.8rem,13vw,4.2rem
 .review .phone{color:var(--fg)}
 .tel{color:var(--gold);user-select:all}
 @media (max-width:380px){.actions{grid-template-columns:1fr}}
-.pano{position:relative;height:clamp(260px,72vw,480px);border-radius:22px;overflow:hidden;border:2px solid var(--gold);background:linear-gradient(#27407a,#f2b36a 55%,#a9845e 56%,#5a4636);touch-action:pan-y;padding:0}
-.real360 iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.pano-btns.below{position:static;margin-top:-18px}
-.real360 .pano-top{pointer-events:none}
-.real360 .pano-top{top:12px;left:12px}
-.credit{margin:-22px 0 0;text-align:center;font-size:.78rem;color:var(--muted)}.credit a{color:var(--turq)}
-.pano-gl{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab}
-.pano-gl:active{cursor:grabbing}
-.pano-top{position:absolute;top:12px;left:12px;display:flex;gap:8px;align-items:center;background:rgba(13,31,60,.72);border-radius:999px;padding:5px 12px 5px 5px;font-weight:800;font-size:.9rem;pointer-events:none}
-.pano-badge{background:var(--gold);color:var(--bg);border-radius:999px;padding:2px 8px;font-size:.8rem}
-.pano-hint{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);margin:0;background:rgba(13,31,60,.72);border-radius:999px;padding:6px 14px;font-size:.85rem;white-space:nowrap;pointer-events:none;transition:opacity .6s}
-.pano.tilt-on .pano-hint{opacity:0}
-.pano-btns{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:0 12px}
-.pano-btn{font:800 .95rem var(--body);color:var(--bg);background:var(--gold);border:0;border-radius:999px;padding:10px 16px;cursor:pointer}
-.pano-btn.real{text-decoration:none;background:var(--fg);color:var(--bg)}
-.pano-btn[aria-pressed="true"]{background:var(--turq)}
-.pano-btn:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
-.pano.no-gl .pano-hint,.pano.no-gl [data-tilt]{display:none}
-@media (prefers-reduced-motion:reduce){.pano-hint{transition:none}}
+.music{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:8px;font:800 .85rem var(--body);color:var(--bg);background:var(--gold);border:0;border-radius:999px;padding:10px 14px;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer}
+.music[aria-pressed="false"]{background:var(--card);color:var(--gold);border:1.5px solid var(--gold)}
+.music:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.eq{display:flex;align-items:flex-end;gap:2px;height:14px}
+.eq i{width:3px;height:4px;background:currentColor;border-radius:1px}
+.music[aria-pressed="true"] .eq i{animation:eq 1s ease-in-out infinite}
+.music[aria-pressed="true"] .eq i:nth-child(2){animation-delay:.2s}
+.music[aria-pressed="true"] .eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:4px}50%{height:14px}}
+@media (prefers-reduced-motion:reduce){.music .eq i{animation:none!important}}
 .sub{color:var(--turq);margin:0;font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;font-weight:800}
 section{display:flex;flex-direction:column;gap:12px}
 h2{font-family:var(--display);font-weight:700;font-size:1.5rem;margin:0;display:flex;align-items:center;gap:12px;color:var(--gold)}
@@ -119,6 +110,7 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
   </defs>
 </svg>
 
+<button type="button" class="music" id="music" aria-pressed="false" aria-label="Музика" hidden><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span><span class="mlabel" data-en="Music">Музика</span></button>
 <div class="wrap">
   <div class="lang" role="group" aria-label="Language">
     <button type="button" id="lang-uk" aria-pressed="true">UA</button><button type="button" id="lang-en" aria-pressed="false">EN</button>
@@ -141,14 +133,6 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
     </div>
   </header>
 
-  <section class="pano real360" id="pano360" aria-label="Самарканд 360°">
-    <iframe src="https://uzbekistan360.uz/ru/location/neJ0V" title="Самарканд 360° — Uzbekistan360" loading="lazy" allow="fullscreen; gyroscope; accelerometer; magnetometer; xr-spatial-tracking" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-  </section>
-  <div class="pano-btns below" id="pano360btns">
-    <a class="pano-btn real" href="https://uzbekistan360.uz/ru/location/neJ0V" target="_blank" rel="noopener" data-en="Open full screen ↗">Відкрити на весь екран ↗</a>
-    <button type="button" class="pano-btn" data-music="music.mp3" aria-pressed="false" hidden data-en="🎵 Music">🎵 Музика</button>
-  </div>
-  <p class="credit"><span data-en="Panorama courtesy of">Панорама надана</span> <a href="https://uzbekistan360.uz" target="_blank" rel="noopener">Uzbekistan360.uz</a></p>
 
   <section>
     <h2 data-en="Soups">Перші страви</h2>
@@ -394,6 +378,6 @@ footer{text-align:center;color:var(--muted);display:flex;flex-direction:column;g
 })();
 </script>
 
-<script src="pano.js"></script>
+<script src="music.js"></script>
 </body>
 </html>
